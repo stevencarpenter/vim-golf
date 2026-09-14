@@ -6,6 +6,12 @@ opens it with your Neovim config, validates it on exit, and records the raw byte
 Neovim wrote to its input log. The byte count is a personal trend, not a portable
 VimGolf score. Special keys can occupy more than one byte.
 
+Reopening a challenge resumes both its files and its input log. The score counts
+all sessions since `reset`, including unsuccessful sessions and exit commands.
+`reset DAY` deletes that day's work, input log, and best score. Logs overwritten
+by older runner versions cannot be recovered; start a fresh attempt for a valid
+score if you previously resumed with an older version.
+
 ```bash
 ./vim-golf list
 ./vim-golf play 2026-08-19
@@ -26,6 +32,23 @@ exercise.
 `VIMGOLF_CHALLENGES_DIR` overrides the challenges directory;
 `VIMGOLF_STATE_DIR` overrides the work/score state directory
 (default `~/.local/state/vim-golf`).
+
+## Challenge brief in tmux
+
+Add this binding to your tmux config, adjusting the checkout path if needed:
+
+```tmux
+bind g display-popup -E -w 84% -h 90% '"$HOME/projects/vim-golf/vim-golf" brief'
+```
+
+During a challenge, press the **tmux prefix**, release it, then press `g`.
+In the original dotfiles setup the prefix is `Ctrl+Space`; tmux's default is
+`Ctrl+b`. Vim's `<leader>g` remains the Git menu. The popup shows the challenge
+last launched in that tmux session. Scroll with `j`/`k` and close it with `q`.
+Short briefs stay open even when your `LESS` setting includes `-F`.
+
+Outside tmux, run `./vim-golf brief 2026-08-19` from the project to page the task,
+or `./vim-golf show 2026-08-19` to print it.
 
 ## Setup-specific rules
 
