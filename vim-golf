@@ -14,7 +14,8 @@ usage() {
     'resolves against the current month.' \
     '' \
     'brief pages the challenge.md for the day play last registered in this tmux' \
-    'session (falling back to DAY/today); the prefix+g tmux popup calls it.'
+    'session (falling back to DAY/today); tmux prefix, then g opens the popup.' \
+    'This is the tmux prefix, not the Vim leader. Press q to close the brief.'
 }
 
 resolve_day() {
@@ -82,17 +83,20 @@ play() {
   sed -n '1,240p' "$challenge/challenge.md"
   printf '\nworktree: %s\n' "$work"
   if [[ -n "${TMUX:-}" ]]; then
-    # Register the active brief so the prefix+g display-popup binding (which
+    # Register the active brief so the tmux prefix, then g binding (which
     # runs `brief`) shows this day even after nvim opens. Left set on exit:
     # the popup stays useful while reviewing check/diff output.
     tmux set-environment VIMGOLF_BRIEF "$challenge/challenge.md"
   fi
   if [[ -t 0 ]]; then
-    read -rsp $'\nRead the brief, then press Enter to open Neovim (prefix+g pops the brief back up; rerun in a shell with: show '"${day##*-}"$')...\n'
+    printf '\nReread from the project: ./vim-golf show %s\n' "$day"
+    printf 'In tmux: press the tmux prefix, then g (not the Vim leader). Press q to close the brief.\n'
+    read -rsp $'Read the brief, then press Enter to open Neovim...\n'
   fi
   (
     cd "$work"
-    nvim -W "$keylog" "$entrypoint"
+    # The worktree survives reopening, so its input log must survive too.
+    nvim -w "$keylog" "$entrypoint"
   )
 
   if check_result "$challenge" "$work"; then
@@ -194,7 +198,8 @@ case "$command" in
     if [[ ! -f "$brief_file" ]]; then
       brief_file="$(challenge_dir "$day")/challenge.md"
     fi
-    exec less "$brief_file"
+    # Override LESS=-F: a short brief must stay open inside display-popup -E.
+    exec less -+F -M '-PMVim Golf brief (j/k scroll, q closes)' "$brief_file"
     ;;
   copy)
     challenge="$(challenge_dir "$day")"
